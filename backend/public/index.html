@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>登录/注册</title>
+  <style>
+    /* 整体页面样式 */
+    body {
+      background-image: url(./picture/back.jpg);
+      font-family: Arial, Helvetica, sans-serif;
+      color: rgb(0, 0, 0);
+      margin: 0;
+      padding: 0;
+      /* 确保页面撑满浏览器视口 */
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 方框（div）样式 */
+ .a {
+      background-color: rgba(170, 170, 170, 0.25);
+      /* 使用rgba设置颜色及透明度，最后一个参数0.25表示25%透明度 */
+      width: 300px;
+      padding: 40px;
+    }
+
+    /* 隐藏和显示表单的类 */
+ .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="a">
+    <h1>欢迎</h1>
+    <button id="showLoginFormButton">登录</button>
+    <button id="showRegisterFormButton">注册</button>
+    <form id="loginForm" class="hidden">
+      <!-- 对用户输入进行转义处理，防止XSS攻击 -->
+      <label for="username">用户名:</label>
+      <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+
+      <label for="password">密码:</label>
+      <input type="password" id="password" name="password" placeholder="请输入密码" required>
+
+      <input type="submit" value="登录">
+    </form>
+    <form id="registerForm" class="hidden">
+      <label for="username">用户名:</label>
+      <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+
+      <label for="password">密码:</label>
+      <input type="password" id="password" name="password" placeholder="请输入密码" required>
+
+      <label for="email">邮箱:</label>
+      <input type="email" id="email" name="email" placeholder="请输入邮箱" required>
+
+      <input type="submit" value="注册">
+    </form>
+  </div>
+  <script>
+    const showLoginFormButton = document.getElementById('showLoginFormButton');
+    const showRegisterFormButton = document.getElementById('showRegisterFormButton');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    showLoginFormButton.addEventListener('click', function () {
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+    });
+
+    showRegisterFormButton.addEventListener('click', function () {
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      // 使用fetch API发送POST请求到后端登录接口（根据实际后端域名和路由调整）
+      fetch('https://your_domain/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      })
+    .then(response => response.json())
+    .then(data => {
+          if (data.message === '登录成功！') {
+            // 这里可以添加登录成功后的页面跳转逻辑，跳转到主页
+            window.location.href = 'https://your_domain/api/home';
+          } else {
+            alert(data.message);
+          }
+        })
+    .catch(error => {
+          console.error(error);
+          alert('网络错误，请稍后再试');
+        });
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const email = document.getElementById('email').value;
+      // 使用fetch API发送POST请求到后端注册接口（根据实际后端域名和路由调整）
+      fetch('https://your_domain/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password, email })
+      })
+    .then(response => response.json())
+    .then(data => {
+          if (data.message === '注册成功！') {
+            alert('注册成功，可进行登录');
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+          } else {
+            alert(data.message);
+          }
+        })
+    .catch(error => {
+          console.error(error);
+          alert('网络错误，请稍后再试');
+        });
+    });
+  </script>
+</body>
+
+</html>
