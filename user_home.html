@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>用户主页</title>
+    <style>
+        /* 样式代码 */
+    </style>
+</head>
+
+<body>
+    <h1>欢迎，<span id="username"></span>！</h1>
+    <div id="fileList"></div>
+
+    <script>
+        const usernameSpan = document.getElementById('username');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        if (username) {
+            localStorage.setItem('currentUser', username);
+            usernameSpan.textContent = username;
+        } else {
+            const storedUsername = localStorage.getItem('currentUser');
+            if (storedUsername) {
+                usernameSpan.textContent = storedUsername;
+            } else {
+                window.location.href = '/login.html';
+            }
+        }
+
+        const fileListDiv = document.getElementById('fileList');
+
+        fetch(`/files?username=${username}`)
+            .then(response => response.json())
+            .then(data => {
+                data.files.forEach(file => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.innerHTML = `
+                        <span>${file}</span>
+                        <button onclick="downloadFile('${file}')">下载</button>
+                        <button onclick="renameFile('${file}')">重命名</button>
+                        <button onclick="deleteFile('${file}')">删除</button>
+                    `;
+                    fileListDiv.appendChild(fileDiv);
+                });
+            })
+            .catch(error => {
+                console.error('获取文件列表失败:', error);
+                alert('获取文件列表失败，请重试。');
+            });
+
+        function downloadFile(filename) {
+            fetch(`/download?username=${username}&filename=${filename}`)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    console.error('文件下载失败:', error);
+                    alert('文件下载失败，请重试。');
+                });
+        }
+
+        function renameFile(filename) {
+            // 实现重命名逻辑
+        }
+
+        function deleteFile(filename) {
+            if (confirm('此操作不可逆，删除后服务器将不会存留该文件，是否删除？')) {
+                fetch(`/files?username=${username}&filename=${filename}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('文件删除成功');
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error('文件删除失败:', error);
+                        alert('文件删除失败，请重试。');
+                    });
+            }
+        }
+
+        window.onbeforeunload = function () {
+            localStorage.removeItem('currentUser');
+        };
+    </script>
+</body>
+
+</html>
